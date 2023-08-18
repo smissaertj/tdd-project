@@ -7,12 +7,16 @@ class Portfolio {
     this.moneys = [...this.moneys, ...moneys] // this.moneys.concat(moneys)
   }
 
-  convert(money, currency){
-    let eurToUSD = 1.2
+  convert(money, currency) {
+    let exchangeRates = new Map()
+    exchangeRates.set("EUR->USD", 1.2)
+    exchangeRates.set("USD->EUR", 0.84)
+    exchangeRates.set("USD->KRW", 1100)
     if(money.currency === currency){
       return money.amount
     }
-    return money.amount * eurToUSD
+    let key = money.currency + '->' + currency;
+    return money.amount * exchangeRates.get(key)
   }
 
   evaluate(currency){
