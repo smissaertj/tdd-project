@@ -1,4 +1,7 @@
 const Money = require("./money.js")
+const Bank = require("./bank.js")
+
+
 class Portfolio {
   constructor() {
     this.moneys = []
@@ -23,15 +26,16 @@ class Portfolio {
     return money.amount * rate
   }
 
-  evaluate(currency){
+  evaluate(bank, currency){
     let failures = []
     let total = this.moneys.reduce( (sum, money) => {
-      let convertedAmount = this.convert(money, currency)
-      if(convertedAmount === undefined){
-        failures.push(money.currency + '->' + currency)
+      try {
+        let convertedMoney = bank.convert(money, currency)
+        return sum + convertedMoney.amount
+      } catch (e) {
+        failures.push(e.message)
         return sum
       }
-      return sum + convertedAmount
     }, 0)
     if(!failures.length){
       return new Money(total, currency)
