@@ -5,7 +5,7 @@ const Bank = require("./bank.js")
 
 
 class MoneyTest {
-  constructor() {
+  setUp() {
     this.bank = new Bank()
     this.bank.addExchangeRate("EUR", "USD", 1.2)
     this.bank.addExchangeRate("USD", "KRW", 1100)
@@ -60,19 +60,27 @@ class MoneyTest {
     assert.throws(() => portfolio.evaluate(this.bank, "Kalganid" ), expectedError)
   }
 
-  testConversion() {
+  testConversionWithDifferentRatesBetweenTwoCurrencies() {
     let bank = new Bank()
-    bank.addExchangeRate("EUR", "USD", 1.2)
+    this.bank.addExchangeRate("EUR", "USD", 1.3)
     let tenEuros = new Money(10, "EUR")
-    assert.deepStrictEqual(bank.convert(tenEuros, "USD"), new Money(12, "USD"))
+    assert.deepStrictEqual(this.bank.convert(tenEuros, "USD"), new Money(13, "USD"))
   }
 
   testConversionWithMissingExchangeRate() {
     let bank = new Bank()
     let tenEuros = new Money(10, "EUR")
     let portfolio = new Portfolio();
-    let expecctedError = new Error("EUR->Kalganid")
-    assert.throws( () => portfolio.evaluate(this.bank.convert(tenEuros, "Kalganid")), expecctedError)
+    let expectedError = new Error("EUR->Kalganid")
+    assert.throws( () => portfolio.evaluate(this.bank.convert(tenEuros, "Kalganid")), expectedError)
+  }
+
+  randomizeTestOrder(testMethods) {
+    for (let i = testMethods.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [testMethods[i], testMethods[j]] = [testMethods[j], testMethods[i]];
+    }
+    return testMethods;
   }
 
   getAllTestMethods() {
@@ -81,7 +89,7 @@ class MoneyTest {
     let testMethods = allProps.filter(p => {
       return typeof moneyPrototype[p] === 'function' && p.startsWith('test')
     })
-    return testMethods
+    return this.randomizeTestOrder(testMethods)
   }
 
   runAllTests(){
@@ -90,6 +98,7 @@ class MoneyTest {
       console.log("Running: %s()", m)
       let method = Reflect.get(this, m)
       try {
+        this.setUp()
         Reflect.apply(method, this, [])
       } catch (e) {
         if (e instanceof assert.AssertionError) {
